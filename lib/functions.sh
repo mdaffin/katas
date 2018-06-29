@@ -67,7 +67,7 @@ run_level() {
 
     # Password for this level is cached so return as we don't need to run
     [[ -f "${outpath}" ]] && {
-        echo "Level${level}: $(cat "${outpath}")"
+        echo "Level${level}: *$(cat "${outpath}" | head -n1)"
         return 0
     }
 
@@ -81,7 +81,7 @@ run_level() {
 
     printf -- "${out}" > "${outpath}"
     chmod 600 "${outpath}"
-    echo "Level${level}: ${out}"
+    echo "Level${level}: ${out}" | head -n1
 }
 
 CSD=$(dirname "$(readlink -f "$0")")
