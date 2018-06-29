@@ -1,0 +1,39 @@
+#!/bin/bash
+set -uo pipefail
+trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
+IFS=$'\n\t'
+CSD=$(dirname "$(readlink -f "$0")")
+source "$CSD/lib/functions.sh"
+
+LEVELS=$CSD/levels
+
+echo bandit0 > out/level0
+echo "Level0: $(cat out/level0)"
+
+run_level 1 "cat readme"
+run_level 2 "cat './-'"
+run_level 3 "cat 'spaces in this filename'"
+run_level 4 "cat inhere/.hidden"
+run_level 5 'cat $(file inhere/* | grep "ASCII text" | cut -d ":" -f 1)'
+run_level 6 'cat $(find inhere -type f \! -executable -size 1033c)'
+run_level 7 'cat $(find / -type f -user bandit7 -group bandit6 -size 33c 2>/dev/null)'
+run_level 8 "awk '/millionth/ {print \$2}' data.txt"
+run_level 9 "sort data.txt | uniq -u"
+run_level 10 "tr -c '[:print:]' '\\n'  < data.txt | awk 'match(\$0, /========== .{32}/) {print \$2}'"
+#bandit_ssh 11 "ls -la"
+#bandit_ssh 12 "ls -la"
+#bandit_ssh 13 "ls -la"
+#bandit_ssh 14 "ls -la"
+#bandit_ssh 15 "ls -la"
+#bandit_ssh 16 "ls -la"
+#bandit_ssh 17 "ls -la"
+#bandit_ssh 18 "ls -la"
+#bandit_ssh 19 "ls -la"
+#bandit_ssh 20 "ls -la"
+#bandit_ssh 21 "ls -la"
+#bandit_ssh 22 "ls -la"
+#bandit_ssh 23 "ls -la"
+#bandit_ssh 24 "ls -la"
+#bandit_ssh 25 "ls -la"
+#bandit_ssh 26 "ls -la"
+#bandit_ssh 27 "ls -la"
