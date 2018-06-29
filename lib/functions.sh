@@ -18,28 +18,51 @@ check_command() {
 }
 
 bandit_ssh() {
+    strict_mode
     local level="${1}"
-    local passpath="out/level$((level-1))"
-    local user="bandit$((level-1))"
-    local password="$(cat ${passpath})"
     shift
 
+    local passpath="${OUTPATH}/level$((level-1))"
+    local user="bandit$((level-1))"
+
     [[ -f "${passpath}" ]] || {
-        echo "Missing password file '${passpath}'. Please run that level to continue."
+        echo "Missing password file '${passpath}'. Please run that level to continue." 1>&2
         return 1
     }
+    local password="$(cat "${passpath}" | head -n1 | tr -d '\n')"
 
+    if [[ "${password}" == "-----BEGIN RSA PRIVATE KEY-----" ]]; then
+        bandit_ssh_key "${user}" "${passpath}" "${@}"
+    else
+        bandit_ssh_password "${user}" "${password}" "${@}"
+    fi
+}
+
+bandit_ssh_key() {
+    strict_mode
+    local user="${1}"
+    local keyfile="${2}"
+    shift 2
+    ssh -i "${keyfile}" -p 2220 "${user}@bandit.labs.overthewire.org" "${@}" \
+        2> >(grep -v "This is a OverTheWire game server.\|Warning: Permanently added" 1>&2)
+}
+
+bandit_ssh_password() {
+    strict_mode
+    local user="${1}"
+    local password="${2}"
+    shift 2
     sshpass -p "${password}" \
         ssh -p 2220 "${user}@bandit.labs.overthewire.org" "${@}" \
-        2> >(grep -v "This is a OverTheWire game server." 1>&2)
+        2> >(grep -v "This is a OverTheWire game server.\|Warning: Permanently added" 1>&2)
 }
 
 # Runs a level with the given command.
 run_level() {
     strict_mode
     local level="${1}"
-    local passpath="out/level$((level-1))"
-    local outpath="out/level${level}"
+    local passpath="${OUTPATH}/level$((level-1))"
+    local outpath="${OUTPATH}/level${level}"
     shift
 
     # Password for this level is cached so return as we don't need to run
@@ -48,7 +71,7 @@ run_level() {
         return 0
     }
 
-    local out=$(bandit_ssh "${level}" "${@}" | head -n1 | tr -d '\n')
+    local out=$(bandit_ssh "${level}" "${@}")
     local ret=$?
 
     if [[ "${ret}" -ne 0 ]]; then
@@ -56,10 +79,13 @@ run_level() {
         return $ret
     fi
 
-    printf "${out}" > "${outpath}"
+    printf -- "${out}" > "${outpath}"
+    chmod 600 "${outpath}"
     echo "Level${level}: ${out}"
 }
 
 CSD=$(dirname "$(readlink -f "$0")")
+OUTPATH=out
 check_command ssh
 check_command sshpass
+mkdir -p "${OUTPATH}"

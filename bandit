@@ -7,7 +7,7 @@ source "$CSD/lib/functions.sh"
 
 LEVELS=$CSD/levels
 
-echo bandit0 > out/level0
+echo -n "bandit0" > out/level0
 echo "Level0: $(cat out/level0)"
 
 run_level 1 "cat readme"
@@ -15,19 +15,19 @@ run_level 2 "cat './-'"
 run_level 3 "cat 'spaces in this filename'"
 run_level 4 "cat inhere/.hidden"
 run_level 5 'cat $(file inhere/* | grep "ASCII text" | cut -d ":" -f 1)'
-run_level 6 'cat $(find inhere -type f \! -executable -size 1033c)'
+run_level 6 'cat $(find inhere -type f \! -executable -size 1033c) | grep -v "^\s*$"'
 run_level 7 'cat $(find / -type f -user bandit7 -group bandit6 -size 33c 2>/dev/null)'
 run_level 8 "awk '/millionth/ {print \$2}' data.txt"
 run_level 9 "sort data.txt | uniq -u"
 run_level 10 "tr -c '[:print:]' '\\n'  < data.txt | awk 'match(\$0, /========== .{32}/) {print \$2}'"
-#bandit_ssh 11 "ls -la"
-#bandit_ssh 12 "ls -la"
-#bandit_ssh 13 "ls -la"
-#bandit_ssh 14 "ls -la"
-#bandit_ssh 15 "ls -la"
-#bandit_ssh 16 "ls -la"
-#bandit_ssh 17 "ls -la"
-#bandit_ssh 18 "ls -la"
+run_level 11 "base64 -d data.txt | sed 's/The password is //'"
+run_level 12 "tr 'A-Za-z' 'N-ZA-Mn-za-m' < data.txt | sed 's/The password is //'"
+run_level 13 "xxd -r data.txt | gzip -d | bzip2 -d | gzip -d | tar -xO data5.bin | tar -xO data6.bin | bzip2 -d | tar -xO data8.bin | gzip -d | sed 's/The password is //'"
+run_level 14 "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i sshkey.private bandit14@localhost cat /etc/bandit_pass/bandit14 2> >(grep -v 'Could not create directory\|Warning: Permanently added\|This is a OverTheWire game server.')"
+run_level 15 "echo '$(cat out/level14)' | nc localhost 30000 | grep -v 'Correct!'"
+run_level 16 "echo '$(cat out/level15)' | ncat -C --ssl 127.0.0.1 30001 | grep -v 'Correct!'"
+run_level 17 "nmap -oG - -q -p 31000-32000 localhost | grep "Ports: " | sed 's~.*Ports: \|/open/tcp/////\tIgnored State:.*~~g' | sed 's~/open/tcp/////, ~\n~g' | while read port; do echo \"$(cat out/level16)\" | ncat -C --ssl 127.0.0.1 \$port 2>/dev/null; done | grep -v 'Correct!\|$(cat out/level16)'"
+bandit_ssh 18 "ls -la"
 #bandit_ssh 19 "ls -la"
 #bandit_ssh 20 "ls -la"
 #bandit_ssh 21 "ls -la"
