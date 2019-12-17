@@ -11,7 +11,7 @@ strict_mode() {
 # commands are present.
 check_command() {
     strict_mode
-    if ! command -v ${1} &>/dev/null; then
+    if ! command -v "${1}" &>/dev/null; then
         echo "Missing '${1}' command. Please install it to continue."
         exit 1
     fi
@@ -24,12 +24,13 @@ bandit_ssh() {
 
     local passpath="${OUTPATH}/level$((level-1))"
     local user="bandit$((level-1))"
+    local password
 
     [[ -f "${passpath}" ]] || {
         echo "Missing password file '${passpath}'. Please run that level to continue." 1>&2
         return 1
     }
-    local password="$(cat "${passpath}" | head -n1 | tr -d '\n')"
+    password="$(head -n1 < "${passpath}"  | tr -d '\n')"
 
     if [[ "${password}" == "-----BEGIN RSA PRIVATE KEY-----" ]]; then
         bandit_ssh_key "${user}" "${passpath}" "${@}"
@@ -60,31 +61,36 @@ bandit_ssh_password() {
 # Runs a level with the given command.
 run_level() {
     strict_mode
+    local out
+    local ret
     local level="${1}"
     local passpath="${OUTPATH}/level$((level-1))"
     local outpath="${OUTPATH}/level${level}"
     shift
 
-    # Password for this level is cached so return as we don't need to run
     [[ -f "${outpath}" ]] && {
-        echo "Level${level}: *$(cat "${outpath}" | head -n1)"
+        echo "Level${level}: *$(head -n1 < "${outpath}")"
         return 0
     }
 
-    local out=$(bandit_ssh "${level}" "${@}")
-    local ret=$?
+    out=$(bandit_ssh "${level}" "${@}")
+    ret=$?
 
     if [[ "${ret}" -ne 0 ]]; then
-        echo "SSH command failed: '${@}'"
+        echo "SSH command failed: '${*}'"
         return $ret
     fi
 
-    printf -- "${out}" > "${outpath}"
+    if [[ -z "${out}" ]]; then
+        echo "No output from ssh command"
+        return 1
+    fi
+
+    printf -- "%s" "${out}" > "${outpath}"
     chmod 600 "${outpath}"
     echo "Level${level}: ${out}" | head -n1
 }
 
-CSD=$(dirname "$(readlink -f "$0")")
 OUTPATH=out
 check_command ssh
 check_command sshpass
